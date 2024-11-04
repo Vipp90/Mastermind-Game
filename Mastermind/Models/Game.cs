@@ -8,7 +8,6 @@ namespace Mastermind.Models
         public string PlayerName { get; set; }
         public Code Code { get; set; }
         public Mode GameMode { get; set; }
-        public TimeOnly GameTime { get; set; }
     }
     public enum Mode
     {

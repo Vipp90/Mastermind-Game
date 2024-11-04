@@ -1,6 +1,6 @@
-﻿namespace Mastermind.Models
+﻿namespace Mastermind.ResponseModels
 {
-    public class ResponseModel
+    public class CheckCodeResponse
     {
         public bool Guessed { get; set; }
         public Hint? Hint { get; set; }
