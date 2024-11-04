@@ -16,5 +16,16 @@
             Brown,
             Orange
         }
+        public override bool Equals(object obj)
+        {
+            if (obj is Code other)
+            {
+                return FirstColor == other.FirstColor &&
+                       SecondColor == other.SecondColor &&
+                       ThirdColor == other.ThirdColor &&
+                       FourthColor == other.FourthColor;
+            }
+            return false;
+        }
     }
 }
