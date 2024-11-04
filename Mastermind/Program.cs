@@ -17,6 +17,16 @@ app.MapPost("/game", (GameInfo gameInfo, IGameService _gameService) =>
     return Results.Ok(game.Id);
 });
 
+app.MapPost("/game/{id}/guess", (Guid id, Code userCode, IGameService _gameService) =>
+{
+    if (!currentGames.TryGetValue(id, out var game))
+    {
+        return Results.NotFound("Game not found or already finished");
+    }
+    var result = _gameService.CheckCode(game.Code, userCode);
+    return Results.Ok(result);
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

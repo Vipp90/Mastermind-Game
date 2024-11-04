@@ -6,5 +6,6 @@ namespace Mastermind
     public interface IGameService
     {
         public Game CreateGame(GameInfo game);
+        public ResponseModel CheckCode(Code gameCode, Code userCode);
     }
 }
