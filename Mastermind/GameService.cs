@@ -17,32 +17,36 @@ namespace Mastermind
             _gameRepository = gameRepository;
         }
 
-        public Game CreateGame(GameInfo gameInfo)
+        public ServiceResult<string> CreateGame(GameInfo gameInfo)
         {
-            var code = gameInfo.Equals(Mode.RandomSet) ? CodeGenerator.GenerateCode() : gameInfo.Code;
-            if (code == null) return null;
+            var code = gameInfo.GameMode.Equals(Mode.RandomSet) ? CodeGenerator.GenerateCode() : gameInfo.Code;
+            if (!(code != null) || code.IsEmpty() == true) return new ServiceResult<string>(false, "Code is not set", null);
+            if (gameInfo.GameMode == Mode.RandomSet && String.IsNullOrEmpty(gameInfo.PlayerName))
+            {
+                return new ServiceResult<string>(false, "Player name in random game cannot be empty", null);
+            }
             var game = new Game();
             game.Id = Guid.NewGuid();
             game.PlayerName = gameInfo.PlayerName;
             game.GameMode = gameInfo.GameMode;
             game.Code = code;
             CurrentGames[game.Id] = game;
-            return game;
+            return new ServiceResult<string>(true, "", game.Id.ToString());
         }
 
-        public CheckCodeResponse? CheckCode(Guid gameId, Code userCode)
+        public ServiceResult<CheckCodeResponse> CheckCode(Guid gameId, Code userCode)
         {
             var game = GetGame(gameId);
             if (game == null)
             {
-                return null;
+                return new ServiceResult<CheckCodeResponse>(false, "Game not found or already finished", null);
             }
             var gameCode = game.Code;
             var response = new CheckCodeResponse();
             if (gameCode.Equals(userCode))
             {
                 response.Guessed = true;
-                return response;
+                return new ServiceResult<CheckCodeResponse>(true, "", response); ;
             }
             response.Hint = new Hint();
             List<Colors> correctColors = new List<Colors> { gameCode.FirstColor, gameCode.SecondColor, gameCode.ThirdColor, gameCode.FourthColor };
@@ -71,7 +75,7 @@ namespace Mastermind
                 }
             }
             response.Guessed = false;
-            return response;
+            return new ServiceResult<CheckCodeResponse>(true, "", response);
         }
 
         public Game? GetGame(Guid gameId)
@@ -83,15 +87,15 @@ namespace Mastermind
             return game;
         }
 
-        public async Task<ResponseModel> SaveScore(Guid gameId, int score)
+        public async Task<ServiceResult<string>> SaveScore(Guid gameId, int score)
         {
             var result = true;
             var game = GetGame(gameId);
             if (game == null)
             {
-                return new ResponseModel(false, "Game not found or already finished");
+                return new ServiceResult<string>(false, "Game not found or already finished", null);
             }
-            if (game.GameMode.Equals(Mode.ManualSet)) return new ResponseModel(true, "");
+            if (game.GameMode.Equals(Mode.ManualSet)) return new ServiceResult<string>(true, "", null);
 
             var playerHighscore = await _gameRepository.PlayerHighscore(game.PlayerName);
             if (playerHighscore == 0)
@@ -103,7 +107,13 @@ namespace Mastermind
             {
                 result = await _gameRepository.UpdateScore(game.PlayerName, score);
             }
-            return result ? new ResponseModel(true, "") : new ResponseModel(false, "An error occurred while adding a score.");
+            return result ? new ServiceResult<string>(true, "", game.Id.ToString()) : new ServiceResult<string>(false, "An error occurred while adding a score.", null);
+        }
+
+        public async Task<ServiceResult<List<HighscoresBoard>>> GetHighscores()
+        {
+            var result = await _gameRepository.Highscores();
+            return result is null ? new ServiceResult<List<HighscoresBoard>>(false, "An error occurred while retrieving the highscore board.", null) : new ServiceResult<List<HighscoresBoard>>(true, "", result);
         }
     }
 }

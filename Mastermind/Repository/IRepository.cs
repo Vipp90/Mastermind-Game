@@ -1,4 +1,4 @@
-﻿using Mastermind.Models;
+﻿using Mastermind.ResponseModels;
 
 namespace Mastermind.Repository
 {
@@ -7,5 +7,6 @@ namespace Mastermind.Repository
         public Task<bool> AddScore(string playerName, int score);
         public Task<bool> UpdateScore(string playerName, int score);
         public Task<int> PlayerHighscore(string playerName);
+        public Task<List<HighscoresBoard>> Highscores();
     }
 }
