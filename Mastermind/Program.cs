@@ -14,19 +14,14 @@ var app = builder.Build();
 
 app.MapPost("/game", (GameInfo gameInfo, IGameService _gameService) =>
 {
-    var game = _gameService.CreateGame(gameInfo);
-    if (game != null) return Results.Ok(game.Id);
-    return Results.BadRequest("No code provided");
+    var result = _gameService.CreateGame(gameInfo);
+    return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 
 app.MapPost("/game/{id}/guess", (Guid id, Code userCode, IGameService _gameService) =>
 {
     var result = _gameService.CheckCode(id, userCode);
-    if (result == null)
-    {
-        return Results.NotFound("Game not found or already finished");
-    }
-    return Results.Ok(result);
+    return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 
 app.MapPost("/game/score", async (Guid gameId, int score, IGameService _gameService) =>
@@ -35,11 +30,16 @@ app.MapPost("/game/score", async (Guid gameId, int score, IGameService _gameServ
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 
+app.MapGet("/game/score", async (IGameService _gameService) =>
+{
+    var result = await _gameService.GetHighscores();
+    return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 
 app.Run();

@@ -1,4 +1,6 @@
-﻿namespace Mastermind.Models
+﻿using System.Runtime.CompilerServices;
+
+namespace Mastermind.Models
 {
     public class Code
     {
@@ -26,6 +28,14 @@
                        FourthColor == other.FourthColor;
             }
             return false;
+        }
+
+        public bool IsEmpty()
+        {
+            return !Enum.IsDefined(typeof(Colors), FirstColor) ||
+           !Enum.IsDefined(typeof(Colors), SecondColor) ||
+           !Enum.IsDefined(typeof(Colors), ThirdColor) ||
+           !Enum.IsDefined(typeof(Colors), FourthColor);
         }
     }
 }

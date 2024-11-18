@@ -1,4 +1,5 @@
 ﻿using Mastermind.Models;
+using Mastermind.ResponseModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Mastermind.Repository
@@ -37,7 +38,7 @@ namespace Mastermind.Repository
             }
 
         }
-        
+
         public async Task<bool> UpdateScore(string playerName, int score)
         {
             var playerHighscore = await _context.HighScores.SingleAsync(x => x.PlayerName == playerName);
@@ -52,6 +53,41 @@ namespace Mastermind.Repository
                 return false;
             }
             return true;
+        }
+
+        public async Task<List<HighscoresBoard>> Highscores()
+        {
+            var i = 0;
+            var highScoresBoard = new List<HighscoresBoard>();
+            try
+            {
+                var result = await _context.HighScores.OrderBy(x => x.Score).ToListAsync();
+                if (result.Any())
+                {
+                    foreach (var highscore in result)
+                    {
+                        i++;
+                        highScoresBoard.Add(new HighscoresBoard { PlayerName = highscore.PlayerName, Score = ConvertTimeToString(highscore.Score) });
+                    }
+                }
+                return highScoresBoard;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving the highscore board");
+                return null;
+            }
+
+        }
+
+        private string ConvertTimeToString(int miliseconds)
+        {
+            TimeSpan time = TimeSpan.FromMilliseconds(miliseconds);
+            string result = string.Format("{0:D2}m:{1:D2}s:{2:D2}mili",
+                            time.Minutes,
+                            time.Seconds,
+                            time.Milliseconds);
+            return result;
         }
     }
 }
