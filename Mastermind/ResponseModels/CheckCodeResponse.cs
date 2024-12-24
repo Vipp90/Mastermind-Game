@@ -4,6 +4,7 @@
     {
         public bool Guessed { get; set; }
         public Hint? Hint { get; set; }
+        public bool? SaveGame { get; set; }
     }
 
     public class Hint

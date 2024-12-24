@@ -3,6 +3,7 @@ using Mastermind.Repository;
 using Mastermind.ResponseModels;
 using System;
 using System.CodeDom.Compiler;
+using System.Diagnostics;
 using System.Drawing;
 using static Mastermind.Models.Code;
 
@@ -34,6 +35,14 @@ namespace Mastermind
             return new ServiceResult<string>(true, "", game.Id.ToString());
         }
 
+        public void DeleteGame(Guid gameId)
+        {
+            if (CurrentGames.ContainsKey(gameId))
+            {
+                CurrentGames.Remove(gameId);
+            }
+        }
+
         public ServiceResult<CheckCodeResponse> CheckCode(Guid gameId, Code userCode)
         {
             var game = GetGame(gameId);
@@ -42,13 +51,18 @@ namespace Mastermind
                 return new ServiceResult<CheckCodeResponse>(false, "Game not found or already finished", null);
             }
             var gameCode = game.Code;
+            Debug.WriteLine(gameCode.FirstColor.ToString() + gameCode.SecondColor.ToString() + gameCode.ThirdColor.ToString() + gameCode.FourthColor.ToString());
             var response = new CheckCodeResponse();
+            response.Hint = new Hint();
             if (gameCode.Equals(userCode))
             {
                 response.Guessed = true;
+                response.Hint.CorrectPlace = 4;
+                response.Hint.WrongPlace = 0;
+                response.Hint.NotOccur = 0;
+                response.SaveGame = game.GameMode == Mode.RandomSet ? true : false;
                 return new ServiceResult<CheckCodeResponse>(true, "", response); ;
             }
-            response.Hint = new Hint();
             List<Colors> correctColors = new List<Colors> { gameCode.FirstColor, gameCode.SecondColor, gameCode.ThirdColor, gameCode.FourthColor };
             List<Colors> userColors = new List<Colors> { userCode.FirstColor, userCode.SecondColor, userCode.ThirdColor, userCode.FourthColor };
             for (int i = correctColors.Count - 1; i >= 0; i--)
@@ -115,5 +129,6 @@ namespace Mastermind
             var result = await _gameRepository.Highscores();
             return result is null ? new ServiceResult<List<HighscoresBoard>>(false, "An error occurred while retrieving the highscore board.", null) : new ServiceResult<List<HighscoresBoard>>(true, "", result);
         }
+
     }
 }
