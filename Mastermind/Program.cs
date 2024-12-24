@@ -1,6 +1,7 @@
 using Mastermind;
 using Mastermind.Models;
 using Mastermind.Repository;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,13 +19,13 @@ app.MapPost("/game", (GameInfo gameInfo, IGameService _gameService) =>
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 
-app.MapPost("/game/{id}/guess", (Guid id, Code userCode, IGameService _gameService) =>
+app.MapPost("/game/{gameId}/guess", (Guid gameId, Code userCode, IGameService _gameService) =>
 {
-    var result = _gameService.CheckCode(id, userCode);
+    var result = _gameService.CheckCode(gameId, userCode);
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 
-app.MapPost("/game/score", async (Guid gameId, int score, IGameService _gameService) =>
+app.MapPost("/game/{gameId}/score", async (Guid gameId, [FromBody] int score, IGameService _gameService) =>
 {
     var result = await _gameService.SaveScore(gameId, score);
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
@@ -34,6 +35,12 @@ app.MapGet("/game/score", async (IGameService _gameService) =>
 {
     var result = await _gameService.GetHighscores();
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
+});
+
+app.MapDelete("/game/{gameId}", (Guid gameId, IGameService _gameService) =>
+{
+    _gameService.DeleteGame(gameId);
+    return Results.Ok();
 });
 
 if (app.Environment.IsDevelopment())
