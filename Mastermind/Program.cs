@@ -4,6 +4,7 @@ using Mastermind.Repository;
 using Mastermind.Tools.Cors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Mastermind.RequestModels;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
@@ -27,9 +28,9 @@ app.MapPost("/game", (GameInfo gameInfo, IGameService _gameService) =>
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 
-app.MapPost("/game/{gameId}/guess", (Guid gameId, Code userCode, IGameService _gameService) =>
+app.MapPost("/game/{gameId}/guess", (Guid gameId, CheckCodeRequest request, IGameService _gameService) =>
 {
-    var result = _gameService.CheckCode(gameId, userCode);
+    var result = _gameService.CheckCode(gameId, request.UserCode, request.Chances);
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 

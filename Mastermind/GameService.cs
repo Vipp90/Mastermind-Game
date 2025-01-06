@@ -43,9 +43,10 @@ namespace Mastermind
             }
         }
 
-        public ServiceResult<CheckCodeResponse> CheckCode(Guid gameId, Code userCode)
+        public ServiceResult<CheckCodeResponse> CheckCode(Guid gameId, Code userCode, int chances)
         {
             var game = GetGame(gameId);
+
             if (game == null)
             {
                 return new ServiceResult<CheckCodeResponse>(false, "Game not found or already finished", null);
@@ -61,6 +62,7 @@ namespace Mastermind
                 response.Hint.WrongPlace = 0;
                 response.Hint.NotOccur = 0;
                 response.SaveGame = game.GameMode == Mode.RandomSet ? true : false;
+                response.HiddenCode = gameCode;
                 return new ServiceResult<CheckCodeResponse>(true, "", response); ;
             }
             List<Colors> correctColors = new List<Colors> { gameCode.FirstColor, gameCode.SecondColor, gameCode.ThirdColor, gameCode.FourthColor };
@@ -70,8 +72,8 @@ namespace Mastermind
                 if (correctColors[i] == userColors[i])
                 {
                     response.Hint.CorrectPlace += 1;
-                    correctColors.Remove(correctColors[i]);
-                    userColors.Remove(userColors[i]);
+                    correctColors.RemoveAt(i);
+                    userColors.RemoveAt(i);
                 }
             }
 
@@ -81,7 +83,7 @@ namespace Mastermind
                 if (index != -1)
                 {
                     response.Hint.WrongPlace += 1;
-                    correctColors.Remove(correctColors[index]);
+                    correctColors.RemoveAt(index);
                 }
                 else
                 {
@@ -89,6 +91,10 @@ namespace Mastermind
                 }
             }
             response.Guessed = false;
+            if (chances == 5)
+            {
+                response.HiddenCode = gameCode;
+            }
             return new ServiceResult<CheckCodeResponse>(true, "", response);
         }
 
