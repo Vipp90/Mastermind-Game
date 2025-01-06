@@ -19,7 +19,16 @@ app.UseCors(builder.Configuration);
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<Database>();
-    dbContext.Database.Migrate();
+    try
+    {
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
 }
 
 app.MapPost("/game", (GameInfo gameInfo, IGameService _gameService) =>
