@@ -30,7 +30,7 @@ app.MapPost("/game", (GameInfo gameInfo, IGameService _gameService) =>
 
 app.MapPost("/game/{gameId}/guess", (Guid gameId, CheckCodeRequest request, IGameService _gameService) =>
 {
-    var result = _gameService.CheckCode(gameId, request.UserCode, request.Chances);
+    var result = _gameService.CheckCode(gameId, request.UserCode, request.lastScore);
     return result.IsSuccess ? Results.Ok(result) : Results.NotFound(result);
 });
 

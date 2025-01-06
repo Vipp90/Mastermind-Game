@@ -31,6 +31,7 @@ namespace Mastermind
             game.PlayerName = gameInfo.PlayerName;
             game.GameMode = gameInfo.GameMode;
             game.Code = code;
+            game.Chances = 0;
             CurrentGames[game.Id] = game;
             return new ServiceResult<string>(true, "", game.Id.ToString());
         }
@@ -43,11 +44,11 @@ namespace Mastermind
             }
         }
 
-        public ServiceResult<CheckCodeResponse> CheckCode(Guid gameId, Code userCode, int chances)
+        public ServiceResult<CheckCodeResponse> CheckCode(Guid gameId, Code userCode, int lastScore)
         {
             var game = GetGame(gameId);
 
-            if (game == null)
+            if (game == null || game.Chances >= 7)
             {
                 return new ServiceResult<CheckCodeResponse>(false, "Game not found or already finished", null);
             }
@@ -55,6 +56,15 @@ namespace Mastermind
             Debug.WriteLine(gameCode.FirstColor.ToString() + gameCode.SecondColor.ToString() + gameCode.ThirdColor.ToString() + gameCode.FourthColor.ToString());
             var response = new CheckCodeResponse();
             response.Hint = new Hint();
+            game.Chances++;
+            if (game.LastScore != null || game.LastScore == 0)
+            {
+                if (game.LastScore > lastScore || lastScore == 0)
+                {
+                    return new ServiceResult<CheckCodeResponse>(false, "The game page was refreshed while the game was in progress", null);
+                }
+            }
+            game.LastScore = lastScore;
             if (gameCode.Equals(userCode))
             {
                 response.Guessed = true;
@@ -63,6 +73,8 @@ namespace Mastermind
                 response.Hint.NotOccur = 0;
                 response.SaveGame = game.GameMode == Mode.RandomSet ? true : false;
                 response.HiddenCode = gameCode;
+                response.Chances = game.Chances;
+                CurrentGames[game.Id] = game;
                 return new ServiceResult<CheckCodeResponse>(true, "", response); ;
             }
             List<Colors> correctColors = new List<Colors> { gameCode.FirstColor, gameCode.SecondColor, gameCode.ThirdColor, gameCode.FourthColor };
@@ -91,10 +103,12 @@ namespace Mastermind
                 }
             }
             response.Guessed = false;
-            if (chances == 5)
+            response.Chances = game.Chances;
+            if (game.Chances == 6)
             {
                 response.HiddenCode = gameCode;
             }
+            CurrentGames[game.Id] = game;
             return new ServiceResult<CheckCodeResponse>(true, "", response);
         }
 

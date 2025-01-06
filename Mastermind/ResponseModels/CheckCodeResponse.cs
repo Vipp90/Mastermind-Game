@@ -8,6 +8,7 @@ namespace Mastermind.ResponseModels
         public Hint? Hint { get; set; }
         public bool? SaveGame { get; set; }
         public Code? HiddenCode { get; set; }
+        public int Chances { get; set; }
     }
 
     public class Hint

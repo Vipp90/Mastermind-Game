@@ -2,5 +2,5 @@
 
 namespace Mastermind.RequestModels
 {
-    record CheckCodeRequest(Code UserCode, int Chances);
+    record CheckCodeRequest(Code UserCode, int lastScore);
 }

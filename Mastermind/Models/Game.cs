@@ -8,6 +8,8 @@ namespace Mastermind.Models
         public string PlayerName { get; set; }
         public Code Code { get; set; }
         public Mode GameMode { get; set; }
+        public int Chances { get; set; }
+        public int? LastScore { get; set; }
     }
     public enum Mode
     {
